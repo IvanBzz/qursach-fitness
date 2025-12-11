@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!--/* Navigation Bar Fragment - METROPOLITAN PREMIUM */-->
+<nav class="navbar navbar-expand-lg sticky-top" th:fragment="navbar">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" th:href="@{/home}">
+            FITNESS<span class="ms-1">CLUB</span>
+        </a>
+        
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/home}">ГЛАВНАЯ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/schedule}">РАСПИСАНИЕ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/trainers}">ТРЕНЕРЫ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/about}">ОБ АВТОРЕ</a>
+                </li>
+                
+                <li class="nav-item" sec:authorize="hasRole('ROLE_TRAINER')">
+                    <a class="nav-link" th:href="@{/trainer/my-schedules}">МОИ ЗАНЯТИЯ</a>
+                </li>
+
+                <!-- Admin Dropdown -->
+                <li class="nav-item dropdown" sec:authorize="hasRole('ROLE_ADMIN')">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        АДМИНКА
+                    </a>
+                    <ul class="dropdown-menu shadow-lg border-0" aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item" th:href="@{/admin/dashboard}"><i class="bi bi-speedometer2 me-2"></i>Дашборд</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/users}"><i class="bi bi-people me-2"></i>Пользователи</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/workout-types}"><i class="bi bi-collection me-2"></i>Типы тренировок</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/news}"><i class="bi bi-newspaper me-2"></i>Новости</a></li>
+                        <li><hr class="dropdown-divider bg-secondary"></li>
+                        <li><a class="dropdown-item text-accent" th:href="@{/admin/schedule/new}"><i class="bi bi-plus-circle me-2"></i>Добавить слот</a></li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <!-- User Info and Logout -->
+            <ul class="navbar-nav align-items-center">
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                         <div class="rounded-circle d-flex justify-content-center align-items-center me-2" 
+                              style="width: 32px; height: 32px; background-color: var(--accent-color); color: var(--accent-text); font-weight: bold;">
+                             <span sec:authentication="name" th:text="${#authentication.principal.username.substring(0,1).toUpperCase()}">U</span>
+                         </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" th:href="@{/profile}">Профиль</a></li>
+                        <li><a class="dropdown-item" th:href="@{/my-workouts}">Мои записи</a></li>
+                        <li><hr class="dropdown-divider bg-secondary"></li>
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="d-inline">
+                                <button type="submit" class="dropdown-item text-danger">Выйти</button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="btn btn-outline-secondary btn-sm ms-2 px-4" th:href="@{/login}">ВОЙТИ</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+</body>
+</html>

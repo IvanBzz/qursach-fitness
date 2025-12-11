@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Подписчики</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+
+    <div class="d-flex align-items-center mb-4 mt-4">
+        <a th:href="@{/trainer/my-schedules}" class="btn btn-outline-secondary btn-sm me-3 border-0">
+            <i class="bi bi-arrow-left"></i> Назад
+        </a>
+        <h2 class="fw-bold text-uppercase mb-0">Подписчики</h2>
+    </div>
+
+    <div class="card mb-4 border-0 p-4 shadow-lg">
+        <div class="row" th:if="${schedule != null}">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <small class="text-secondary text-uppercase fw-bold">Тренировка</small>
+                <h4 class="text-white mb-0" th:text="${schedule.workoutType.title}">Йога</h4>
+            </div>
+            <div class="col-md-3 mb-3 mb-md-0">
+                <small class="text-secondary text-uppercase fw-bold">Дата</small>
+                <p class="text-white mb-0" th:text="${#temporals.format(schedule.startTime, 'dd MMMM yyyy, HH:mm')}">Date</p>
+            </div>
+            <div class="col-md-3">
+                <small class="text-secondary text-uppercase fw-bold">Мест</small>
+                <p class="text-accent mb-0 fw-bold" th:text="${schedule.availableSlots} + ' свободно'">5</p>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${subscribers.isEmpty()}" class="text-center py-5">
+        <h4 class="text-secondary fw-normal">На эту тренировку пока никто не записался.</h4>
+    </div>
+
+    <div class="card border-0 overflow-hidden" th:if="${!subscribers.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="color: var(--text-main);">
+                <thead style="background-color: rgba(255,255,255,0.05);">
+                <tr>
+                    <th scope="col" class="py-3 ps-4 text-secondary text-uppercase small">Имя</th>
+                    <th scope="col" class="py-3 text-secondary text-uppercase small">Email</th>
+                    <th scope="col" class="py-3 text-secondary text-uppercase small">Телефон</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${subscribers}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td class="ps-4 py-3 fw-bold text-white" th:text="${user.fullName}">Иван Петров</td>
+                    <td class="py-3 text-secondary" th:text="${user.email}">user@example.com</td>
+                    <td class="py-3 text-secondary" th:text="${user.phoneNumber != null ? user.phoneNumber : '-'}">+7900...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

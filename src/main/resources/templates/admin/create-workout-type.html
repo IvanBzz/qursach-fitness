@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать тип тренировки</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4">
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8 col-lg-6">
+            <div class="card p-4">
+                <div class="card-body">
+                    <h4 class="fw-bold mb-4 text-center text-uppercase">Новый тип тренировки</h4>
+
+                    <!-- Error Message -->
+                    <div th:if="${errorMessage}" class="alert alert-danger py-2 small border-0 mb-4" role="alert">
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <form th:action="@{/admin/workout-types/new}" th:object="${workoutType}" method="post">
+                        <div class="mb-3">
+                            <label for="title" class="form-label small text-secondary fw-bold text-uppercase">Название</label>
+                            <input type="text" id="title" class="form-control" th:field="*{title}" required maxlength="100">
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label small text-secondary fw-bold text-uppercase">Описание</label>
+                            <textarea id="description" class="form-control" th:field="*{description}" rows="3" maxlength="1000"></textarea>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="durationMinutes" class="form-label small text-secondary fw-bold text-uppercase">Продолжительность (мин)</label>
+                            <input type="number" id="durationMinutes" class="form-control" th:field="*{durationMinutes}" min="1" required>
+                            <div class="text-danger small mt-1" th:if="${#fields.hasErrors('durationMinutes')}" th:errors="*{durationMinutes}"></div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">СОЗДАТЬ</button>
+                            <a th:href="@{/admin/workout-types}" class="btn btn-outline-secondary text-uppercase" style="border-radius: 50px;">ОТМЕНА</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

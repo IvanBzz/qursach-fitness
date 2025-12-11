@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Наши тренеры</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+
+    <div class="text-center mb-5 mt-4">
+        <h2 class="fw-bold display-5 text-uppercase">Команда</h2>
+        <p class="text-secondary">Профессионалы, которые изменят вашу жизнь</p>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="col" th:each="trainer : ${trainers}">
+            <div class="card h-100 text-center position-relative overflow-hidden group">
+                <!-- Background Gradient Accent -->
+                <div class="position-absolute top-0 start-0 w-100 h-100" 
+                     style="background: radial-gradient(circle at top right, rgba(210, 248, 2, 0.05), transparent 60%); pointer-events: none;"></div>
+                
+                <div class="card-body p-5 position-relative z-1">
+                    <div class="mx-auto rounded-circle d-flex align-items-center justify-content-center mb-4 shadow-lg" 
+                         style="width: 120px; height: 120px; background: linear-gradient(135deg, #2d3748, #1a202c); border: 2px solid var(--accent-color);">
+                        <span class="fw-bold display-4 text-white" th:text="${#strings.substring(trainer.fullName, 0, 1)}">T</span>
+                    </div>
+
+                    <h4 class="fw-bold mb-1 text-white" th:text="${trainer.fullName}">Иван Иванов</h4>
+                    <span class="badge badge-outline rounded-pill mb-4 px-3">Персональный тренер</span>
+                    
+                    <p class="text-secondary small mb-4" th:text="${trainer.bio != null ? trainer.bio : 'Информация уточняется.'}">
+                        Bio...
+                    </p>
+
+                    <a th:href="@{/schedule(keyword=${trainer.fullName})}" class="btn btn-primary btn-sm px-4">
+                        Расписание
+                    </a>
+                </div>
+                
+                <div class="card-footer border-top border-secondary py-3">
+                    <div class="d-flex justify-content-center gap-3">
+                        <span class="text-secondary small" th:if="${trainer.phoneNumber}"><i class="bi bi-telephone text-accent me-2"></i> <span th:text="${trainer.phoneNumber}"></span></span>
+                        <span class="text-secondary small" th:unless="${trainer.phoneNumber}"><i class="bi bi-envelope text-accent me-2"></i> <span th:text="${trainer.email}"></span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

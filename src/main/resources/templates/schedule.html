@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Расписание</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+
+    <div class="d-flex justify-content-between align-items-end mb-5 mt-4 border-bottom border-secondary pb-4" style="border-color: rgba(255,255,255,0.05) !important;">
+        <div>
+            <h2 class="fw-bold mb-1 text-uppercase">Расписание</h2>
+            <p class="text-secondary mb-0">Выберите тренировку и запишитесь онлайн</p>
+        </div>
+        
+        <div sec:authorize="hasRole('ROLE_ADMIN')">
+            <a th:href="@{/admin/schedule/new}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i> Добавить слот
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-5 border-0 bg-transparent">
+        <form th:action="@{/schedule}" method="get" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-surface border-secondary text-secondary" style="background-color: var(--bg-surface); border-color: var(--border-color);"><i class="bi bi-search"></i></span>
+                    <input type="text" id="keyword" name="keyword" class="form-control border-start-0" placeholder="Поиск тренировки..." th:value="${keyword}" style="background-color: var(--bg-surface);">
+                </div>
+            </div>
+            <div class="col-md-3">
+                 <select name="sortField" id="sortField" class="form-select" style="background-color: var(--bg-surface);">
+                     <option value="startTime" th:selected="${sortField == 'startTime'}">По дате и времени</option>
+                     <option value="workoutType.durationMinutes" th:selected="${sortField == 'workoutType.durationMinutes'}">По длительности</option>
+                     <option value="workoutType.title" th:selected="${sortField == 'workoutType.title'}">По названию</option>
+                     <option value="availableSlots" th:selected="${sortField == 'availableSlots'}">По свободным местам</option>
+                 </select>
+            </div>
+            <div class="col-md-2">
+                 <select name="sortDir" id="sortDir" class="form-select" style="background-color: var(--bg-surface);">
+                     <option value="asc" th:selected="${sortDir == 'asc'}">По возрастанию</option>
+                     <option value="desc" th:selected="${sortDir == 'desc'}">По убыванию</option>
+                 </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-secondary w-100">Применить</button>
+                <a th:href="@{/schedule}" class="btn btn-outline-secondary w-100 border-0"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Messages -->
+    <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center mb-4 border-0" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center mb-4 border-0" role="alert">
+        <i class="bi bi-exclamation-circle-fill me-2"></i><span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Schedule Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="col" th:each="schedule : ${schedules}">
+            <div class="card h-100">
+                <!-- Icon Header with Smart Icons -->
+                <div class="workout-card-img rounded-top position-relative d-flex flex-column justify-content-center">
+                     <!-- Dynamic Icon Logic -->
+                     <i th:class="${#strings.containsIgnoreCase(schedule.workoutType.title, 'йога') ? 'bi bi-flower1' : 
+                                  (#strings.containsIgnoreCase(schedule.workoutType.title, 'бокс') ? 'bi bi-hand-index-thumb-fill' : 
+                                  (#strings.containsIgnoreCase(schedule.workoutType.title, 'бег') || #strings.containsIgnoreCase(schedule.workoutType.title, 'run') ? 'bi bi-stopwatch' : 
+                                  (#strings.containsIgnoreCase(schedule.workoutType.title, 'кроссфит') ? 'bi bi-lightning-charge-fill' : 
+                                  (#strings.containsIgnoreCase(schedule.workoutType.title, 'плавание') || #strings.containsIgnoreCase(schedule.workoutType.title, 'бассейн') ? 'bi bi-droplet-fill' : 
+                                  'bi bi-activity'))))}"></i>
+                </div>
+                
+                <div class="card-body">
+                    <h4 class="fw-bold mb-2 text-white" th:text="${schedule.workoutType.title}">Йога</h4>
+                    <p class="text-secondary small mb-4 line-clamp-2" th:text="${schedule.workoutType.description}">Описание...</p>
+                    
+                    <div class="d-flex align-items-center mb-3 p-2 rounded" style="background: rgba(255,255,255,0.03);">
+                         <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                              style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); color: var(--accent-color); font-weight: bold;">
+                             <span th:text="${#strings.substring(schedule.trainer.fullName, 0, 1)}">T</span>
+                         </div>
+                         <div class="d-flex flex-column">
+                             <small class="text-secondary text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Тренер</small>
+                             <span th:text="${schedule.trainer.fullName}" class="fw-bold text-white small">Имя</span>
+                         </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-4">
+                         <i class="bi bi-clock text-accent me-3 fs-5"></i>
+                         <div class="d-flex flex-column">
+                             <small class="text-secondary text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Время</small>
+                             <span class="fw-bold text-white small">
+                                <span th:text="${#temporals.format(schedule.startTime, 'dd MMMM')}">12.12</span> | 
+                                <span th:text="${#temporals.format(schedule.startTime, 'HH:mm')}">18:00</span> - 
+                                <span th:text="${#temporals.format(schedule.startTime.plusMinutes(schedule.workoutType.durationMinutes), 'HH:mm')}">19:00</span>
+                             </span>
+                         </div>
+                    </div>
+
+                    <!-- Slots -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Доступно мест</span>
+                            <span class="fw-bold" 
+                                  th:classappend="${schedule.availableSlots == 0 ? 'text-danger' : 'text-white'}"
+                                  th:text="${schedule.availableSlots}">10</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                            <div class="progress-bar" role="progressbar" 
+                                 th:style="'width: ' + ${(schedule.availableSlots == 0 ? 0 : (schedule.availableSlots * 5 > 100 ? 100 : schedule.availableSlots * 5))} + '%; box-shadow: 0 0 10px ' + (${schedule.availableSlots < 3 ? '#ef4444' : 'var(--accent-color)'})"
+                                 th:classappend="${schedule.availableSlots < 3 ? 'bg-danger' : ''}"
+                                 aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <form th:action="@{/schedule/signup/{id}(id=${schedule.id})}" method="post" sec:authorize="hasRole('ROLE_USER')">
+                            <button type="submit" class="btn w-100" 
+                                    th:classappend="${schedule.availableSlots == 0 ? 'btn-outline-secondary text-secondary border-0' : 'btn-primary'}"
+                                    th:disabled="${schedule.availableSlots == 0}"
+                                    th:text="${schedule.availableSlots > 0 ? 'ЗАПИСАТЬСЯ' : 'МЕСТ НЕТ'}">
+                                Записаться
+                            </button>
+                        </form>
+                        
+                        <div class="d-flex gap-2" sec:authorize="hasRole('ROLE_ADMIN')">
+                            <a th:href="@{/admin/schedule/edit/{id}(id=${schedule.id})}" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/admin/schedule/delete/{id}(id=${schedule.id})}" method="post" class="flex-grow-1" onsubmit="return confirm('Удалить?');">
+                                <button type="submit" class="btn btn-outline-secondary w-100 text-danger" style="border-color: rgba(239, 68, 68, 0.3);">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div th:if="${schedules.isEmpty()}" class="col-12 text-center py-5">
+            <h4 class="text-secondary fw-normal">Тренировок не найдено</h4>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

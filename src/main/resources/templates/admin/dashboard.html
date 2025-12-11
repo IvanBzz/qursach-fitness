@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Дашборд</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+
+    <h2 class="mb-4 fw-bold text-uppercase">Панель администратора</h2>
+
+    <div class="row g-4 mb-5">
+        <!-- Total Users Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-lg text-white bg-primary position-relative overflow-hidden">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center position-relative z-1">
+                    <div>
+                        <h6 class="text-uppercase text-dark small fw-bold mb-2">Пользователи</h6>
+                        <span class="fs-2 fw-bold text-black" th:text="${stats.totalUsers}">0</span>
+                    </div>
+                    <i class="bi bi-people-fill fs-1 text-dark opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Users Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-lg text-white position-relative overflow-hidden" style="background-color: #10b981;">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center position-relative z-1">
+                    <div>
+                        <h6 class="text-uppercase text-white small fw-bold mb-2">Новые (7 дней)</h6>
+                        <span class="fs-2 fw-bold" th:text="${stats.newUsersLast7Days}">0</span>
+                    </div>
+                    <i class="bi bi-person-plus-fill fs-1 text-white opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Duration Card -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-lg text-white position-relative overflow-hidden" style="background-color: var(--accent-color);">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center position-relative z-1">
+                    <div>
+                        <h6 class="text-uppercase text-dark small fw-bold mb-2">Сред. время (мин)</h6>
+                        <span class="fs-2 fw-bold text-dark" th:text="${stats.averageWorkoutDuration}">0</span>
+                    </div>
+                    <i class="bi bi-stopwatch-fill fs-1 text-dark opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="fw-bold mb-0 text-white text-uppercase">Популярность тренировок</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="workoutPopularityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const workoutPopularityData = /*[[${stats.workoutPopularity}]]*/ [];
+    const labels = workoutPopularityData.map(item => item.workoutType.title);
+    const data = workoutPopularityData.map(item => item.subscriptionCount);
+
+    const ctx = document.getElementById('workoutPopularityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Записей',
+                data: data,
+                backgroundColor: 'rgba(210, 248, 2, 0.7)',
+                borderColor: 'rgba(210, 248, 2, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#94a3b8' }
+                },
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#94a3b8' }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: '#fff' } }
+            }
+        }
+    });
+    /*]]>*/
+</script>
+
+</body>
+</html>

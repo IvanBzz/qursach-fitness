@@ -1,0 +1,196 @@
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Montserrat:wght@500;600;700;800&display=swap');
+
+:root {
+    /* Premium Dark Palette */
+    --bg-body: #0f1116;       
+    --bg-surface: #191c24;    
+    --bg-input: #222630;      /* Distinct color for inputs */
+    
+    --accent-color: #D2F802;  
+    --accent-hover: #bde000;
+    --accent-text: #000000;   
+    
+    --text-main: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-disabled: #64748b;
+    
+    --border-color: #2d3748;
+    --border-radius: 16px;    
+    --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+}
+
+a { text-decoration: none; transition: all 0.2s ease; }
+
+/* Navbar */
+.navbar {
+    background-color: rgba(15, 17, 22, 0.85) !important;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 1rem 0;
+}
+.navbar-brand { font-weight: 800; font-size: 1.5rem; color: var(--text-main) !important; }
+.navbar-brand span { color: var(--accent-color); }
+.nav-link { color: var(--text-secondary) !important; font-weight: 500; }
+.nav-link:hover, .nav-link.active { color: var(--text-main) !important; }
+.dropdown-menu {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+}
+.dropdown-item { color: var(--text-secondary); }
+.dropdown-item:hover { background-color: rgba(255,255,255,0.05); color: var(--accent-color); }
+
+/* Cards */
+.card {
+    background-color: var(--bg-surface);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+}
+.card-header, .card-footer {
+    background-color: transparent;
+    border-color: rgba(255,255,255,0.05);
+}
+
+/* --- FIX: TABLES --- */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-main);
+    --bs-table-hover-color: var(--text-main);
+    --bs-table-hover-bg: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.05);
+}
+.table thead th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.table td {
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* --- FIX: INPUTS & FORMS --- */
+.form-control, .form-select {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 12px;
+    padding: 12px 16px;
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: #2a2f3a;
+    border-color: var(--accent-color);
+    color: var(--text-main);
+    box-shadow: 0 0 0 3px rgba(210, 248, 2, 0.15);
+    outline: none;
+}
+
+/* Disabled inputs - make text visible but distinct */
+.form-control:disabled, .form-control[readonly] {
+    background-color: rgba(255,255,255,0.05);
+    color: var(--text-secondary); /* Lighter grey, readable */
+    opacity: 1;
+    border-color: transparent;
+}
+
+/* Datepicker dark mode fix */
+input[type="datetime-local"], input[type="date"] {
+    color-scheme: dark; /* Makes the calendar popup dark */
+    cursor: pointer;
+}
+
+/* Placeholder color */
+::placeholder { color: #555 !important; opacity: 1; }
+
+/* Buttons */
+.btn {
+    border-radius: 50px;
+    padding: 10px 28px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: all 0.3s;
+}
+.btn-primary {
+    background-color: var(--accent-color);
+    color: var(--accent-text);
+    border: none;
+    box-shadow: 0 4px 15px rgba(210, 248, 2, 0.2);
+}
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+    color: var(--accent-text);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(210, 248, 2, 0.4);
+}
+.btn-outline-secondary {
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+.btn-outline-secondary:hover {
+    border-color: var(--text-main);
+    color: var(--text-main);
+    background: rgba(255,255,255,0.05);
+}
+
+/* Hero & Misc */
+.hero-section {
+    padding: 100px 0;
+    margin-bottom: 60px;
+    background: radial-gradient(circle at top right, rgba(210, 248, 2, 0.05), transparent 40%), linear-gradient(to bottom, #0f1116, #191c24);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(to right, #ffffff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.badge-outline { border: 1px solid var(--border-color); color: var(--text-secondary); }
+.text-accent { color: var(--accent-color) !important; }
+
+/* Progress Bars */
+.progress {
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+.progress-bar { background-color: var(--accent-color); }
+
+/* Alerts */
+.alert-success { background: rgba(210, 248, 2, 0.1); color: var(--accent-color); border: 1px solid rgba(210, 248, 2, 0.2); }
+.alert-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+
+/* Workout Card Icon */
+.workout-card-img {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    font-size: 4rem;
+    color: var(--text-secondary);
+}
+.card:hover .workout-card-img { color: var(--accent-color); }
