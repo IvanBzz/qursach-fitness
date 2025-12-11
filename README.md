@@ -59,7 +59,7 @@
 
 1.  **Клонируйте репозиторий:**
     ```bash
-    git clone https://github.com/YOUR_USERNAME/fitness-club-system.git
+    git clone https://github.com/IvanBzz/fitness-club-system.git
     cd fitness-club-system
     ```
 
