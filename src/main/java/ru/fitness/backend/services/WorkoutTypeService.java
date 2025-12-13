@@ -14,6 +14,8 @@ import java.util.NoSuchElementException;
 public class WorkoutTypeService {
 
     private final WorkoutTypeRepository workoutTypeRepository;
+    private final ru.fitness.backend.repositories.ScheduleRepository scheduleRepository;
+    private final ru.fitness.backend.repositories.WorkoutSubscriptionRepository workoutSubscriptionRepository;
 
     public List<WorkoutType> findAll() {
         return workoutTypeRepository.findAll();
@@ -40,8 +42,17 @@ public class WorkoutTypeService {
 
     @Transactional
     public void deleteWorkoutType(Long id) {
-        // Here you might want to check if there are existing schedules with this type
-        // and either prevent deletion or cascade delete (though cascade is usually DB side or JPA)
+        WorkoutType workoutType = findById(id);
+        
+        // Find all schedules with this workout type
+        List<ru.fitness.backend.models.Schedule> schedules = scheduleRepository.findByWorkoutType(workoutType);
+        
+        // Delete each schedule and its subscriptions
+        for (ru.fitness.backend.models.Schedule schedule : schedules) {
+            workoutSubscriptionRepository.deleteAllBySchedule(schedule);
+            scheduleRepository.delete(schedule);
+        }
+        
         workoutTypeRepository.deleteById(id);
     }
 }

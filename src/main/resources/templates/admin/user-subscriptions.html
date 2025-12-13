@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Записи пользователя</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link th:href="@{/css/styles.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-4 mb-5">
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+        <div>
+            <h2 class="fw-bold text-uppercase mb-1">Записи пользователя</h2>
+            <p class="text-secondary mb-0">
+                <span th:text="${user.fullName}">Имя пользователя</span> (<span th:text="${user.email}">email</span>)
+            </p>
+        </div>
+        <a th:href="@{/admin/users}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Назад
+        </a>
+    </div>
+
+    <!-- Messages -->
+    <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center mb-4 border-0" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center mb-4 border-0" role="alert">
+        <i class="bi bi-exclamation-circle-fill me-2"></i><span th:text="${errorMessage}"></span>
+    </div>
+
+    <div class="card border-0 overflow-hidden" th:if="${!subscriptions.isEmpty()}">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="color: var(--text-main);">
+                <thead style="background-color: rgba(255,255,255,0.05);">
+                <tr>
+                    <th scope="col" class="py-3 ps-4 text-secondary">Тренировка</th>
+                    <th scope="col" class="py-3 text-secondary">Тренер</th>
+                    <th scope="col" class="py-3 text-secondary">Время</th>
+                    <th scope="col" class="py-3 text-end pe-4 text-secondary">Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="sub : ${subscriptions}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td class="ps-4 py-3">
+                        <span class="fw-bold text-white d-block" th:text="${sub.schedule.workoutType.title}">Йога</span>
+                    </td>
+                    <td class="py-3">
+                        <span class="text-secondary" th:text="${sub.schedule.trainer.fullName}">Тренер</span>
+                    </td>
+                    <td class="py-3 text-white fw-medium">
+                        <span th:text="${#temporals.format(sub.schedule.startTime, 'dd MMMM, HH:mm')}">Date</span>
+                    </td>
+                    <td class="text-end pe-4 py-3">
+                        <form th:action="@{/admin/users/{userId}/subscriptions/cancel/{subId}(userId=${user.id}, subId=${sub.id})}" method="post" class="d-inline" onsubmit="return confirm('Вы уверены, что хотите отменить запись этого пользователя?');">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm text-danger border-0" style="background: transparent;">
+                                <i class="bi bi-x-circle me-1"></i> Отменить
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div th:if="${subscriptions.isEmpty()}" class="text-center py-5">
+        <h4 class="text-secondary fw-normal">У пользователя нет активных записей.</h4>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

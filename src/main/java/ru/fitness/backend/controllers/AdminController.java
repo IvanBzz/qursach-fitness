@@ -86,8 +86,8 @@ public class AdminController {
 
     @PostMapping("/users/edit/{id}")
     public String updateUserRoles(@PathVariable("id") Long userId,
-                                  @RequestParam(value = "roles", required = false) java.util.HashSet<Role> roles,
-                                  RedirectAttributes redirectAttributes) {
+                                @RequestParam(value = "roles", required = false) java.util.HashSet<Role> roles,
+                                RedirectAttributes redirectAttributes) {
         try {
             // Ensure roles are not null if no checkboxes are selected
             if (roles == null) {
@@ -102,6 +102,59 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении ролей: " + e.getMessage());
         }
         return "redirect:/admin/users";
+    }
+
+    @PostMapping("/users/toggle-status/{id}")
+    public String toggleUserStatus(@PathVariable("id") Long userId, RedirectAttributes redirectAttributes) {
+        try {
+            boolean isActive = userService.toggleUserStatus(userId);
+            redirectAttributes.addFlashAttribute("successMessage", "Статус пользователя изменен.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при изменении статуса: " + e.getMessage());
+        }
+        return "redirect:/admin/users";
+    }
+
+    @GetMapping("/users/{id}/subscriptions")
+    public String listUserSubscriptions(@PathVariable("id") Long userId, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            ru.fitness.backend.models.User user = userService.findById(userId);
+            model.addAttribute("user", user);
+            model.addAttribute("subscriptions", scheduleService.findSubscriptionsForUser(user));
+            return "admin/user-subscriptions";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Пользователь не найден.");
+            return "redirect:/admin/users";
+        }
+    }
+
+    @PostMapping("/users/{userId}/subscriptions/cancel/{subId}")
+    public String cancelUserSubscription(@PathVariable("userId") Long userId,
+                                        @PathVariable("subId") Long subscriptionId,
+                                        RedirectAttributes redirectAttributes) {
+        try {
+            scheduleService.adminCancelSubscription(subscriptionId);
+            redirectAttributes.addFlashAttribute("successMessage", "Запись успешно отменена.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при отмене записи: " + e.getMessage());
+        }
+        return "redirect:/admin/users/" + userId + "/subscriptions";
+    }
+
+    @GetMapping("/schedule/{id}/subscribers")
+    public String listScheduleSubscribers(@PathVariable("id") Long scheduleId, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            ru.fitness.backend.models.Schedule schedule = scheduleService.findById(scheduleId);
+            model.addAttribute("schedule", schedule);
+            // Reusing the same method but passing the trainer from the schedule to bypass check or add a new method
+            // Actually, findSubscribersForSchedule checks if trainer matches.
+            // We need a method for admin that doesn't check trainer ownership.
+            model.addAttribute("subscribers", scheduleService.findSubscribersForScheduleAdmin(scheduleId));
+            return "admin/schedule-subscribers";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при получении списка: " + e.getMessage());
+            return "redirect:/schedule";
+        }
     }
 
     // --- Dashboard ---
@@ -124,9 +177,9 @@ public class AdminController {
 
     @PostMapping("/schedule/new")
     public String createSchedule(@Valid @ModelAttribute("scheduleDto") ScheduleDto scheduleDto,
-                                 BindingResult bindingResult,
-                                 RedirectAttributes redirectAttributes,
-                                 Model model) {
+                                BindingResult bindingResult,
+                                RedirectAttributes redirectAttributes,
+                                Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("allTrainers", userRepository.findAllByRolesContaining(Role.ROLE_TRAINER));
             model.addAttribute("allWorkoutTypes", workoutTypeService.findAll());
@@ -165,10 +218,10 @@ public class AdminController {
 
     @PostMapping("/schedule/edit/{id}")
     public String updateSchedule(@PathVariable("id") Long scheduleId,
-                                 @Valid @ModelAttribute("scheduleDto") ScheduleDto scheduleDto,
-                                 BindingResult bindingResult,
-                                 RedirectAttributes redirectAttributes,
-                                 Model model) {
+                                @Valid @ModelAttribute("scheduleDto") ScheduleDto scheduleDto,
+                                BindingResult bindingResult,
+                                RedirectAttributes redirectAttributes,
+                                Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("allTrainers", userRepository.findAllByRolesContaining(Role.ROLE_TRAINER));
             model.addAttribute("allWorkoutTypes", workoutTypeService.findAll());
@@ -259,7 +312,7 @@ public class AdminController {
     public String deleteWorkoutType(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         try {
             workoutTypeService.deleteWorkoutType(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Тип тренировки успешно удален.");
+            redirectAttributes.addFlashAttribute("successMessage", "Тип тренировки и все связанные занятия успешно удалены.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка: " + e.getMessage());
         }

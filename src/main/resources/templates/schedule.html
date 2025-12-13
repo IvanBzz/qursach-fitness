@@ -27,27 +27,30 @@
 
     <!-- Filters -->
     <div class="card mb-5 border-0 bg-transparent">
-        <form th:action="@{/schedule}" method="get" class="row g-3">
-            <div class="col-md-4">
+        <form th:action="@{/schedule}" method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-secondary fw-bold text-uppercase">Поиск</label>
                 <div class="input-group">
                     <span class="input-group-text bg-surface border-secondary text-secondary" style="background-color: var(--bg-surface); border-color: var(--border-color);"><i class="bi bi-search"></i></span>
-                    <input type="text" id="keyword" name="keyword" class="form-control border-start-0" placeholder="Поиск тренировки..." th:value="${keyword}" style="background-color: var(--bg-surface);">
+                    <input type="text" id="keyword" name="keyword" class="form-control border-start-0" placeholder="Название или тренер..." th:value="${keyword}" style="background-color: var(--bg-surface);">
                 </div>
             </div>
+            
             <div class="col-md-3">
+                <label class="form-label small text-secondary fw-bold text-uppercase">Дата</label>
+                <input type="date" name="date" class="form-control" th:value="${selectedDate}" style="background-color: var(--bg-surface); color-scheme: dark;">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label small text-secondary fw-bold text-uppercase">Сортировка</label>
                  <select name="sortField" id="sortField" class="form-select" style="background-color: var(--bg-surface);">
-                     <option value="startTime" th:selected="${sortField == 'startTime'}">По дате и времени</option>
+                     <option value="startTime" th:selected="${sortField == 'startTime'}">По времени</option>
                      <option value="workoutType.durationMinutes" th:selected="${sortField == 'workoutType.durationMinutes'}">По длительности</option>
                      <option value="workoutType.title" th:selected="${sortField == 'workoutType.title'}">По названию</option>
-                     <option value="availableSlots" th:selected="${sortField == 'availableSlots'}">По свободным местам</option>
+                     <option value="availableSlots" th:selected="${sortField == 'availableSlots'}">По местам</option>
                  </select>
             </div>
-            <div class="col-md-2">
-                 <select name="sortDir" id="sortDir" class="form-select" style="background-color: var(--bg-surface);">
-                     <option value="asc" th:selected="${sortDir == 'asc'}">По возрастанию</option>
-                     <option value="desc" th:selected="${sortDir == 'desc'}">По убыванию</option>
-                 </select>
-            </div>
+
             <div class="col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-outline-secondary w-100">Применить</button>
                 <a th:href="@{/schedule}" class="btn btn-outline-secondary w-100 border-0"><i class="bi bi-x-lg"></i></a>
@@ -78,7 +81,7 @@
                                   'bi bi-activity'))))}"></i>
                 </div>
                 
-                <div class="card-body">
+                <div class="card-body d-flex flex-column">
                     <h4 class="fw-bold mb-2 text-white" th:text="${schedule.workoutType.title}">Йога</h4>
                     <p class="text-secondary small mb-4 line-clamp-2" th:text="${schedule.workoutType.description}">Описание...</p>
                     
@@ -105,41 +108,75 @@
                          </div>
                     </div>
 
-                    <!-- Slots -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between small mb-1">
-                            <span class="text-secondary">Доступно мест</span>
-                            <span class="fw-bold" 
-                                  th:classappend="${schedule.availableSlots == 0 ? 'text-danger' : 'text-white'}"
-                                  th:text="${schedule.availableSlots}">10</span>
+                    <!-- Bottom Section (Slots + Buttons) pushed to bottom -->
+                    <div class="mt-auto">
+                        <!-- Slots -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-secondary">Осталось мест</span>
+                                <span class="fw-bold" 
+                                      th:classappend="${schedule.availableSlots == 0 ? 'text-danger' : 'text-white'}"
+                                      th:text="${schedule.availableSlots}">10</span>
+                            </div>
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                                <div class="progress-bar" role="progressbar" 
+                                     th:with="total=${schedule.totalSlots != null && schedule.totalSlots > 0 ? schedule.totalSlots : 20},
+                                              available=${schedule.availableSlots},
+                                              percent=${(available * 1.0 / total) * 100}"
+                                     th:style="'width: ' + ${percent} + '%; box-shadow: 0 0 10px ' + (${available < 3 ? '#ef4444' : 'var(--accent-color)'})"
+                                     th:classappend="${available < 3 ? 'bg-danger' : ''}"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
                         </div>
-                        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
-                            <div class="progress-bar" role="progressbar" 
-                                 th:style="'width: ' + ${(schedule.availableSlots == 0 ? 0 : (schedule.availableSlots * 5 > 100 ? 100 : schedule.availableSlots * 5))} + '%; box-shadow: 0 0 10px ' + (${schedule.availableSlots < 3 ? '#ef4444' : 'var(--accent-color)'})"
-                                 th:classappend="${schedule.availableSlots < 3 ? 'bg-danger' : ''}"
-                                 aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
 
-                    <div class="d-grid">
-                        <form th:action="@{/schedule/signup/{id}(id=${schedule.id})}" method="post" sec:authorize="hasRole('ROLE_USER')">
-                            <button type="submit" class="btn w-100" 
-                                    th:classappend="${schedule.availableSlots == 0 ? 'btn-outline-secondary text-secondary border-0' : 'btn-primary'}"
-                                    th:disabled="${schedule.availableSlots == 0}"
-                                    th:text="${schedule.availableSlots > 0 ? 'ЗАПИСАТЬСЯ' : 'МЕСТ НЕТ'}">
-                                Записаться
-                            </button>
-                        </form>
-                        
-                        <div class="d-flex gap-2" sec:authorize="hasRole('ROLE_ADMIN')">
-                            <a th:href="@{/admin/schedule/edit/{id}(id=${schedule.id})}" class="btn btn-outline-secondary flex-grow-1">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form th:action="@{/admin/schedule/delete/{id}(id=${schedule.id})}" method="post" class="flex-grow-1" onsubmit="return confirm('Удалить?');">
-                                <button type="submit" class="btn btn-outline-secondary w-100 text-danger" style="border-color: rgba(239, 68, 68, 0.3);">
-                                    <i class="bi bi-trash"></i>
+                        <div class="d-grid">
+                            <!-- Logic for User Buttons -->
+                            <div sec:authorize="hasRole('ROLE_USER')">
+                                <!-- CASE 1: User is ALREADY SUBSCRIBED -->
+                                <button th:if="${subscribedScheduleIds != null and #lists.contains(subscribedScheduleIds, schedule.id)}"
+                                        class="btn btn-outline-success w-100 border-0" disabled
+                                        style="opacity: 1; color: var(--accent-color); border: 1px solid var(--accent-color) !important;">
+                                    <i class="bi bi-check-circle-fill me-2"></i>ВЫ ЗАПИСАНЫ
                                 </button>
-                            </form>
+
+                                <!-- CASE 2: NOT Subscribed AND Slots Available -->
+                                <form th:if="${(subscribedScheduleIds == null or !#lists.contains(subscribedScheduleIds, schedule.id)) and schedule.availableSlots > 0}"
+                                      th:action="@{/schedule/signup/{id}(id=${schedule.id})}" method="post">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        ЗАПИСАТЬСЯ
+                                    </button>
+                                </form>
+
+                                <!-- CASE 3: NOT Subscribed AND NO Slots -->
+                                <button th:if="${(subscribedScheduleIds == null or !#lists.contains(subscribedScheduleIds, schedule.id)) and schedule.availableSlots == 0}"
+                                        class="btn btn-outline-secondary text-secondary border-0 w-100" disabled>
+                                    МЕСТ НЕТ
+                                </button>
+                            </div>
+                            
+                            <!-- Logic for Admin Buttons (Edit/Delete) -->
+                            <div class="d-flex gap-2" sec:authorize="hasRole('ROLE_ADMIN')">
+                                <a th:href="@{/admin/schedule/{id}/subscribers(id=${schedule.id})}" class="btn btn-outline-info flex-grow-1" title="Посмотреть записавшихся">
+                                    <i class="bi bi-people"></i>
+                                </a>
+                                <a th:href="@{/admin/schedule/edit/{id}(id=${schedule.id})}" class="btn btn-outline-secondary flex-grow-1">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/admin/schedule/delete/{id}(id=${schedule.id})}" method="post" class="flex-grow-1" onsubmit="return confirm('Удалить?');">
+                                    <button type="submit" class="btn btn-outline-secondary w-100 text-danger" style="border-color: rgba(239, 68, 68, 0.3);">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <!-- Logic for Trainer to see subscribers -->
+                            <div class="d-grid mt-2" sec:authorize="hasRole('ROLE_TRAINER')">
+                                <a th:if="${currentUser.id == schedule.trainer.id}" 
+                                   th:href="@{/trainer/schedules/{id}/subscribers(id=${schedule.id})}" 
+                                   class="btn btn-outline-info w-100 border-0">
+                                    <i class="bi bi-people me-2"></i>СПИСОК УЧАСТНИКОВ
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -147,7 +184,8 @@
         </div>
         
         <div th:if="${schedules.isEmpty()}" class="col-12 text-center py-5">
-            <h4 class="text-secondary fw-normal">Тренировок не найдено</h4>
+            <h4 class="text-secondary fw-normal">На выбранную дату тренировок не найдено</h4>
+            <a th:href="@{/schedule}" class="btn btn-outline-primary mt-3">Показать все тренировки</a>
         </div>
     </div>
 </div>

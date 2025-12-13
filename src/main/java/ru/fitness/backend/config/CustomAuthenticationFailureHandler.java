@@ -22,8 +22,15 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         log.error("Authentication failed: {} - {}", exception.getClass().getName(), exception.getMessage());
         
-        // Save the exception in session for login.html to retrieve details
-        request.getSession().setAttribute(AUTHENTICATION_EXCEPTION, exception);
+        String errorMessage = "Неверный логин или пароль";
+
+        if (exception instanceof org.springframework.security.authentication.DisabledException) {
+            errorMessage = "Ваш аккаунт заблокирован";
+        } else if (exception instanceof org.springframework.security.authentication.LockedException) {
+            errorMessage = "Ваш аккаунт заблокирован";
+        }
+        
+        request.getSession().setAttribute("errorMessage", errorMessage);
         
         response.sendRedirect("/login?error");
     }

@@ -37,4 +37,7 @@ public class Schedule {
 
     @Min(value = 0, message = "Количество мест не может быть отрицательным")
     private int availableSlots; // Сколько мест осталось
+
+    @Min(value = 0, message = "Общее количество мест не может быть отрицательным")
+    private Integer totalSlots; // Изначальное количество мест
 }

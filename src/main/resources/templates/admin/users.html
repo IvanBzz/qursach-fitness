@@ -65,9 +65,22 @@
                         <span th:unless="${user.active}" class="text-danger small fw-bold">БЛОК</span>
                     </td>
                     <td class="pe-4 py-3 text-end">
-                        <a th:href="@{/admin/users/edit/{id}(id=${user.id})}" class="btn btn-outline-secondary btn-sm py-1 px-3" style="font-size: 0.7rem;">
-                            РОЛИ
-                        </a>
+                        <div class="d-flex justify-content-end gap-2">
+                            <form th:action="@{/admin/users/toggle-status/{id}(id=${user.id})}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm py-1 px-2" 
+                                        th:classappend="${user.active} ? 'btn-outline-danger' : 'btn-outline-success'"
+                                        style="font-size: 0.7rem;"
+                                        th:text="${user.active} ? 'БАН' : 'РАЗБАН'">
+                                    БАН
+                                </button>
+                            </form>
+                            <a th:href="@{/admin/users/edit/{id}(id=${user.id})}" class="btn btn-outline-secondary btn-sm py-1 px-3" style="font-size: 0.7rem;">
+                                РОЛИ
+                            </a>
+                            <a th:href="@{/admin/users/{id}/subscriptions(id=${user.id})}" class="btn btn-outline-info btn-sm py-1 px-2" style="font-size: 0.7rem;">
+                                ЗАПИСИ
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 </tbody>

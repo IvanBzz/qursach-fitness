@@ -1,6 +1,7 @@
 package ru.fitness.backend.controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import ru.fitness.backend.exceptions.NoAvailableSlotsException;
 import ru.fitness.backend.services.ScheduleService;
 import ru.fitness.backend.services.UserService;
 
+import java.time.LocalDate;
 import java.util.NoSuchElementException;
 
 @Controller
@@ -24,14 +26,23 @@ public class ScheduleController {
 
     @GetMapping("/schedule")
     public String showSchedule(@RequestParam(value = "keyword", required = false) String keyword,
+                               @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                @RequestParam(value = "sortField", defaultValue = "startTime") String sortField,
                                @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir,
                                Model model) {
-        model.addAttribute("schedules", scheduleService.findSchedules(keyword, sortField, sortDir));
+        model.addAttribute("schedules", scheduleService.findSchedules(keyword, date, sortField, sortDir));
         model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedDate", date);
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
-        userService.getCurrentUser().ifPresent(user -> model.addAttribute("currentUser", user));
+        userService.getCurrentUser().ifPresent(user -> {
+            model.addAttribute("currentUser", user);
+            // Получаем список ID тренировок, на которые пользователь уже записан
+            java.util.List<Long> subscribedIds = scheduleService.findSubscriptionsForCurrentUser().stream()
+                    .map(sub -> sub.getSchedule().getId())
+                    .toList();
+            model.addAttribute("subscribedScheduleIds", subscribedIds);
+        });
         return "schedule";
     }
 
