@@ -48,6 +48,31 @@ public class AdminController {
         return "redirect:/admin/news";
     }
 
+    @GetMapping("/news/edit/{id}")
+    public String showEditNewsForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("news", newsService.findById(id));
+            return "admin/edit-news";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Новость не найдена.");
+            return "redirect:/admin/news";
+        }
+    }
+
+    @PostMapping("/news/edit/{id}")
+    public String updateNews(@PathVariable Long id,
+                            @RequestParam String title,
+                            @RequestParam String content,
+                            RedirectAttributes redirectAttributes) {
+        try {
+            newsService.updateNews(id, title, content);
+            redirectAttributes.addFlashAttribute("successMessage", "Новость успешно обновлена.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении: " + e.getMessage());
+        }
+        return "redirect:/admin/news";
+    }
+
     @PostMapping("/news/delete/{id}")
     public String deleteNews(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {

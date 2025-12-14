@@ -32,6 +32,7 @@ VALUES (1, 2, NOW() + INTERVAL '1 day', 10, 10), -- Yoga tomorrow
        (2, 2, NOW() + INTERVAL '2 day', 15, 15)  -- CrossFit the day after
 ON CONFLICT DO NOTHING;
 
+
 -- To avoid sequence issues after manual insertion
 -- SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 -- SELECT setval('workout_type_id_seq', (SELECT MAX(id) FROM workout_type));

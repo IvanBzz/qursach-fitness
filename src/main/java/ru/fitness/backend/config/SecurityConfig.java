@@ -39,7 +39,13 @@ public class SecurityConfig {
                 .logout((logout) -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
-                        .permitAll());
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/error")
+                );
 
         return http.build();
     }

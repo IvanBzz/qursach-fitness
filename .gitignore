@@ -32,6 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 *.pdf
-*.docx
 *.doc
+*.docx
 /explanatory_note/

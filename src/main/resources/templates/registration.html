@@ -22,7 +22,7 @@
         <div class="col-md-6 col-lg-5">
             <div class="text-center mb-5">
                 <h2 class="fw-bold text-white">FITNESS<span class="text-accent">CLUB</span></h2>
-            </div>
+        </div>
 
             <div class="card p-4">
                 <div class="card-body">
@@ -30,20 +30,20 @@
 
                     <div th:if="${registrationError}" class="alert alert-danger py-2 small border-0 mb-4">
                         <span th:text="${registrationError}"></span>
-                    </div>
+        </div>
 
                     <form th:action="@{/registration}" th:object="${userDto}" method="post">
-                        <div class="mb-3">
+        <div class="mb-3">
                             <label class="form-label small text-secondary fw-bold text-uppercase">ФИО</label>
                             <input type="text" class="form-control" th:field="*{fullName}" required>
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
-                        </div>
+        </div>
 
-                        <div class="mb-3">
+        <div class="mb-3">
                             <label class="form-label small text-secondary fw-bold text-uppercase">Email</label>
                             <input type="email" class="form-control" th:field="*{email}" required>
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-                        </div>
+        </div>
 
                         <div class="row mb-4">
                             <div class="col-6">
@@ -56,12 +56,12 @@
                                 <input type="password" class="form-control" th:field="*{confirmPassword}" required>
                                 <div class="text-danger small mt-1" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
                             </div>
-                        </div>
+        </div>
 
                         <div class="d-grid mb-4">
                             <button type="submit" class="btn btn-primary">СОЗДАТЬ</button>
                         </div>
-                    </form>
+    </form>
 
                     <div class="text-center border-top border-secondary pt-4" style="border-color: rgba(255,255,255,0.05) !important;">
                         <span class="text-secondary small">Уже есть аккаунт?</span>
@@ -71,7 +71,7 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 
 </body>
 </html>

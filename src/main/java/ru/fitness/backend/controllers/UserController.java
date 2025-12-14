@@ -45,8 +45,25 @@ public class UserController {
     }
 
     @GetMapping("/my-workouts")
-    public String myWorkouts(Model model) {
-        model.addAttribute("subscriptions", scheduleService.findSubscriptionsForCurrentUser());
+    public String myWorkouts(@RequestParam(value = "date", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date,
+                             @RequestParam(value = "workoutTypeId", required = false) Long workoutTypeId,
+                             Model model) {
+        java.util.List<ru.fitness.backend.models.WorkoutSubscription> allSubs = scheduleService.findSubscriptionsForCurrentUser(date, workoutTypeId);
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        
+        java.util.List<ru.fitness.backend.models.WorkoutSubscription> active = allSubs.stream()
+                .filter(sub -> sub.getSchedule().getStartTime().isAfter(now))
+                .toList();
+        
+        java.util.List<ru.fitness.backend.models.WorkoutSubscription> history = allSubs.stream()
+                .filter(sub -> sub.getSchedule().getStartTime().isBefore(now))
+                .toList();
+        
+        model.addAttribute("activeSubscriptions", active);
+        model.addAttribute("historySubscriptions", history);
+        model.addAttribute("selectedDate", date);
+        model.addAttribute("selectedWorkoutTypeId", workoutTypeId);
+        model.addAttribute("workoutTypes", workoutTypeRepository.findAll());
         return "my-workouts";
     }
 

@@ -31,6 +31,19 @@ public class NewsService {
         newsRepository.save(news);
     }
 
+    public News findById(Long id) {
+        return newsRepository.findById(id)
+                .orElseThrow(() -> new java.util.NoSuchElementException("Новость с ID " + id + " не найдена"));
+    }
+
+    @Transactional
+    public void updateNews(Long id, String title, String content) {
+        News news = findById(id);
+        news.setTitle(title);
+        news.setContent(content);
+        newsRepository.save(news);
+    }
+
     @Transactional
     public void deleteNews(Long id) {
         newsRepository.deleteById(id);

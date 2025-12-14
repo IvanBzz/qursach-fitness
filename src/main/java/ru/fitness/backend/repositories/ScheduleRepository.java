@@ -2,7 +2,9 @@ package ru.fitness.backend.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.fitness.backend.models.Schedule;
 import ru.fitness.backend.models.User;
@@ -22,6 +24,14 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long>, JpaSp
     List<Schedule> findAllWithDetails();
 
     List<Schedule> findByTrainer(User trainer);
+    
+    /**
+     * Обновляет только количество доступных мест, минуя валидацию всей сущности
+     * Используется нативный SQL, чтобы обойти Bean Validation (@Future на startTime)
+     */
+    @Modifying(clearAutomatically = true)
+    @Query(value = "UPDATE schedule SET available_slots = available_slots - 1 WHERE id = :id", nativeQuery = true)
+    void decrementAvailableSlots(@Param("id") Long id);
     // Найдёт все записи расписания для конкретного тренера
 
     List<Schedule> findByWorkoutType(WorkoutType workoutType);

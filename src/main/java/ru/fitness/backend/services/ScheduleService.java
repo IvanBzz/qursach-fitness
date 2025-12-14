@@ -1,6 +1,7 @@
 package ru.fitness.backend.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ScheduleService {
@@ -57,7 +59,7 @@ public class ScheduleService {
         return scheduleRepository.findAllWithDetails();
     }
 
-    public List<Schedule> findSchedules(String keyword, LocalDate date, String sortField, String sortDir) {
+    public List<Schedule> findSchedules(String keyword, LocalDate date, Long workoutTypeId, String sortField, String sortDir) {
         Sort sort = Sort.by(sortField != null && !sortField.isEmpty() ? sortField : "startTime");
         if (sortDir != null && sortDir.equals("desc")) {
             sort = sort.descending();
@@ -82,6 +84,10 @@ public class ScheduleService {
                 predicate = criteriaBuilder.and(predicate, criteriaBuilder.between(root.get("startTime"), startOfDay, endOfDay));
             }
 
+            if (workoutTypeId != null) {
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.join("workoutType").get("id"), workoutTypeId));
+            }
+
             return predicate;
         };
 
@@ -90,6 +96,31 @@ public class ScheduleService {
 
     public List<Schedule> findSchedulesByTrainer(User trainer) {
         return scheduleRepository.findByTrainer(trainer);
+    }
+    
+    /**
+     * Находит расписания тренера с фильтрацией по дате и типу тренировки
+     */
+    public List<Schedule> findSchedulesByTrainer(User trainer, LocalDate date, Long workoutTypeId) {
+        List<Schedule> allSchedules = scheduleRepository.findByTrainer(trainer);
+        
+        return allSchedules.stream()
+                .filter(schedule -> {
+                    if (date != null) {
+                        LocalDate scheduleDate = schedule.getStartTime().toLocalDate();
+                        if (!scheduleDate.equals(date)) {
+                            return false;
+                        }
+                    }
+                    if (workoutTypeId != null) {
+                        if (!schedule.getWorkoutType().getId().equals(workoutTypeId)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                .sorted((a, b) -> b.getStartTime().compareTo(a.getStartTime())) // По убыванию времени
+                .toList();
     }
 
     public List<User> findSubscribersForSchedule(Long scheduleId, User trainer) {
@@ -108,41 +139,114 @@ public class ScheduleService {
                 .map(WorkoutSubscription::getUser)
                 .collect(java.util.stream.Collectors.toList());
     }
+    
+    /**
+     * Получает количество записанных участников на тренировку
+     */
+    public int getSubscribersCount(Long scheduleId) {
+        Schedule schedule = findById(scheduleId);
+        return workoutSubscriptionRepository.findAllBySchedule(schedule).size();
+    }
 
     public Schedule findById(Long id) {
         return scheduleRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Тренировка с ID " + id + " не найдена"));
     }
+    
+    @Transactional(readOnly = true)
+    public Schedule findByIdWithTrainer(Long id) {
+        Schedule schedule = findById(id);
+        // Принудительно загружаем тренера, чтобы избежать проблем с lazy loading
+        if (schedule.getTrainer() != null) {
+            schedule.getTrainer().getId(); // Инициализируем прокси
+        }
+        return schedule;
+    }
 
     @Transactional
     public void signUpForWorkout(Long scheduleId) throws NoAvailableSlotsException, AlreadySignedUpException {
-        User currentUser = userService.getCurrentUser()
-                .orElseThrow(() -> new NoSuchElementException("Не удалось определить текущего пользователя."));
-        
-        Schedule schedule = findById(scheduleId);
+        try {
+            User currentUser = userService.getCurrentUser()
+                    .orElseThrow(() -> new NoSuchElementException("Не удалось определить текущего пользователя."));
+            
+            log.debug("Попытка записи пользователя {} на тренировку {}", currentUser.getId(), scheduleId);
+            
+            Schedule schedule = findByIdWithTrainer(scheduleId);
+            
+            // Проверяем по ID, чтобы избежать проблем с lazy loading и сравнением объектов
+            if (schedule.getTrainer() != null && schedule.getTrainer().getId() != null) {
+                if (schedule.getTrainer().getId().equals(currentUser.getId())) {
+                    log.warn("Попытка тренера {} записаться на свою тренировку {}", currentUser.getId(), scheduleId);
+                    throw new IllegalArgumentException("Вы не можете записаться на собственную тренировку.");
+                }
+            }
 
-        if (schedule.getTrainer().equals(currentUser)) {
-            throw new IllegalArgumentException("Вы не можете записаться на собственную тренировку.");
-        }
+            // Проверяем, не прошла ли уже тренировка
+            LocalDateTime now = LocalDateTime.now();
+            if (schedule.getStartTime().isBefore(now)) {
+                log.warn("Попытка записи на прошедшую тренировку {} (время начала: {})", scheduleId, schedule.getStartTime());
+                throw new IllegalArgumentException("Нельзя записаться на тренировку, которая уже прошла.");
+            }
 
-        if (isUserSubscribed(currentUser, schedule)) {
+            // Проверяем, не записан ли уже пользователь
+            if (isUserSubscribed(currentUser, schedule)) {
+                log.warn("Пользователь {} уже записан на тренировку {}", currentUser.getId(), scheduleId);
+                throw new AlreadySignedUpException("Вы уже записаны на эту тренировку.");
+            }
+
+            if (schedule.getAvailableSlots() <= 0) {
+                log.warn("Нет свободных мест на тренировку {}", scheduleId);
+                throw new NoAvailableSlotsException("На эту тренировку нет свободных мест.");
+            }
+
+            // Обновляем количество мест (используем нативный запрос, чтобы избежать валидации @Future при обновлении)
+            scheduleRepository.decrementAvailableSlots(scheduleId);
+
+            WorkoutSubscription subscription = new WorkoutSubscription(currentUser, schedule);
+            workoutSubscriptionRepository.save(subscription);
+            
+            log.info("Пользователь {} успешно записан на тренировку {}", currentUser.getId(), scheduleId);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            log.error("Ошибка целостности данных при записи на тренировку {}: {}", scheduleId, e.getMessage());
+            // Если возникла ошибка уникальности, значит пользователь уже записан
             throw new AlreadySignedUpException("Вы уже записаны на эту тренировку.");
+        } catch (NoAvailableSlotsException | AlreadySignedUpException | IllegalArgumentException e) {
+            // Пробрасываем известные исключения дальше
+            throw e;
+        } catch (Exception e) {
+            log.error("Неожиданная ошибка при записи на тренировку {}: {}", scheduleId, e.getMessage(), e);
+            throw new RuntimeException("Произошла ошибка при записи на тренировку: " + e.getMessage(), e);
         }
-
-        if (schedule.getAvailableSlots() <= 0) {
-            throw new NoAvailableSlotsException("На эту тренировку нет свободных мест.");
-        }
-
-        schedule.setAvailableSlots(schedule.getAvailableSlots() - 1);
-        scheduleRepository.save(schedule);
-
-        WorkoutSubscription subscription = new WorkoutSubscription(currentUser, schedule);
-        workoutSubscriptionRepository.save(subscription);
     }
 
     public List<WorkoutSubscription> findSubscriptionsForCurrentUser() {
         return userService.getCurrentUser()
                 .map(workoutSubscriptionRepository::findByUser)
+                .orElse(List.of());
+    }
+
+    public List<WorkoutSubscription> findSubscriptionsForCurrentUser(LocalDate date, Long workoutTypeId) {
+        return userService.getCurrentUser()
+                .map(user -> {
+                    List<WorkoutSubscription> all = workoutSubscriptionRepository.findByUser(user);
+                    
+                    return all.stream()
+                            .filter(sub -> {
+                                if (date != null) {
+                                    LocalDate subDate = sub.getSchedule().getStartTime().toLocalDate();
+                                    if (!subDate.equals(date)) {
+                                        return false;
+                                    }
+                                }
+                                if (workoutTypeId != null) {
+                                    if (!sub.getSchedule().getWorkoutType().getId().equals(workoutTypeId)) {
+                                        return false;
+                                    }
+                                }
+                                return true;
+                            })
+                            .toList();
+                })
                 .orElse(List.of());
     }
 
@@ -225,6 +329,17 @@ public class ScheduleService {
     }
 
     public boolean isUserSubscribed(User user, Schedule schedule) {
+        // Используем ID для проверки, чтобы избежать проблем с lazy loading
+        if (user == null || schedule == null || user.getId() == null || schedule.getId() == null) {
+            return false;
+        }
         return workoutSubscriptionRepository.existsByUserAndSchedule(user, schedule);
+    }
+    
+    /**
+     * Проверяет, является ли тренировка прошедшей
+     */
+    public boolean isPastSchedule(Schedule schedule) {
+        return schedule.getStartTime().isBefore(LocalDateTime.now());
     }
 }

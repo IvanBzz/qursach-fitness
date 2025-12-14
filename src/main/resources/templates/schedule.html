@@ -36,12 +36,25 @@
                 </div>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label small text-secondary fw-bold text-uppercase">Дата</label>
                 <input type="date" name="date" class="form-control" th:value="${selectedDate}" style="background-color: var(--bg-surface); color-scheme: dark;">
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <label class="form-label small text-secondary fw-bold text-uppercase">Тип</label>
+                <select name="workoutTypeId" class="form-select" style="background-color: var(--bg-surface);">
+                    <option value="">Все типы</option>
+                    <option th:each="type : ${workoutTypes}" 
+                            th:value="${type.id}" 
+                            th:text="${type.title}"
+                            th:selected="${selectedWorkoutTypeId != null and selectedWorkoutTypeId == type.id}">
+                        Тип тренировки
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
                 <label class="form-label small text-secondary fw-bold text-uppercase">Сортировка</label>
                  <select name="sortField" id="sortField" class="form-select" style="background-color: var(--bg-surface);">
                      <option value="startTime" th:selected="${sortField == 'startTime'}">По времени</option>
@@ -66,10 +79,12 @@
         <i class="bi bi-exclamation-circle-fill me-2"></i><span th:text="${errorMessage}"></span>
     </div>
 
-    <!-- Schedule Grid -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <div class="col" th:each="schedule : ${schedules}">
-            <div class="card h-100">
+    <!-- Active Schedules Section -->
+    <div th:if="${!activeSchedules.isEmpty()}">
+        <h5 class="fw-bold text-uppercase mb-4 mt-4">Актуальные тренировки</h5>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            <div class="col" th:each="schedule : ${activeSchedules}">
+                <div class="card h-100">
                 <!-- Icon Header with Smart Icons -->
                 <div class="workout-card-img rounded-top position-relative d-flex flex-column justify-content-center">
                      <!-- Dynamic Icon Logic -->
@@ -155,7 +170,7 @@
                             </div>
                             
                             <!-- Logic for Admin Buttons (Edit/Delete) -->
-                            <div class="d-flex gap-2" sec:authorize="hasRole('ROLE_ADMIN')">
+                            <div class="d-flex gap-2 mt-2" sec:authorize="hasRole('ROLE_ADMIN')">
                                 <a th:href="@{/admin/schedule/{id}/subscribers(id=${schedule.id})}" class="btn btn-outline-info flex-grow-1" title="Посмотреть записавшихся">
                                     <i class="bi bi-people"></i>
                                 </a>
@@ -182,11 +197,114 @@
                 </div>
             </div>
         </div>
-        
-        <div th:if="${schedules.isEmpty()}" class="col-12 text-center py-5">
-            <h4 class="text-secondary fw-normal">На выбранную дату тренировок не найдено</h4>
-            <a th:href="@{/schedule}" class="btn btn-outline-primary mt-3">Показать все тренировки</a>
+    </div>
+
+    <!-- Past Schedules Section -->
+    <div th:if="${!pastSchedules.isEmpty()}">
+        <h5 class="fw-bold text-uppercase mb-4 mt-5">Прошедшие тренировки</h5>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="col" th:each="schedule : ${pastSchedules}">
+                <div class="card h-100" style="opacity: 0.7;">
+                    <!-- Icon Header with Smart Icons -->
+                    <div class="workout-card-img rounded-top position-relative d-flex flex-column justify-content-center">
+                         <!-- Dynamic Icon Logic -->
+                         <i th:class="${#strings.containsIgnoreCase(schedule.workoutType.title, 'йога') ? 'bi bi-flower1' : 
+                                      (#strings.containsIgnoreCase(schedule.workoutType.title, 'бокс') ? 'bi bi-hand-index-thumb-fill' : 
+                                      (#strings.containsIgnoreCase(schedule.workoutType.title, 'бег') || #strings.containsIgnoreCase(schedule.workoutType.title, 'run') ? 'bi bi-stopwatch' : 
+                                      (#strings.containsIgnoreCase(schedule.workoutType.title, 'кроссфит') ? 'bi bi-lightning-charge-fill' : 
+                                      (#strings.containsIgnoreCase(schedule.workoutType.title, 'плавание') || #strings.containsIgnoreCase(schedule.workoutType.title, 'бассейн') ? 'bi bi-droplet-fill' : 
+                                      'bi bi-activity'))))}"></i>
+                    </div>
+                    
+                    <div class="card-body d-flex flex-column">
+                        <h4 class="fw-bold mb-2 text-white" th:text="${schedule.workoutType.title}">Йога</h4>
+                        <p class="text-secondary small mb-4 line-clamp-2" th:text="${schedule.workoutType.description}">Описание...</p>
+                        
+                        <div class="d-flex align-items-center mb-3 p-2 rounded" style="background: rgba(255,255,255,0.03);">
+                             <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                  style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); color: var(--accent-color); font-weight: bold;">
+                                <span th:text="${#strings.substring(schedule.trainer.fullName, 0, 1)}">T</span>
+                             </div>
+                             <div class="d-flex flex-column">
+                                <small class="text-secondary text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Тренер</small>
+                                <span th:text="${schedule.trainer.fullName}" class="fw-bold text-white small">Имя</span>
+                             </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-4">
+                             <i class="bi bi-clock text-accent me-3 fs-5"></i>
+                             <div class="d-flex flex-column">
+                                <small class="text-secondary text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Время</small>
+                                <span class="fw-bold text-white small">
+                                   <span th:text="${#temporals.format(schedule.startTime, 'dd MMMM')}">12.12</span> | 
+                                   <span th:text="${#temporals.format(schedule.startTime, 'HH:mm')}">18:00</span> - 
+                                   <span th:text="${#temporals.format(schedule.startTime.plusMinutes(schedule.workoutType.durationMinutes), 'HH:mm')}">19:00</span>
+                                </span>
+                             </div>
+                        </div>
+
+                        <!-- Bottom Section (Slots + Buttons) pushed to bottom -->
+                        <div class="mt-auto">
+                            <!-- Slots -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-secondary">Осталось мест</span>
+                                    <span class="fw-bold text-secondary" th:text="${schedule.availableSlots}">10</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+                                    <div class="progress-bar bg-secondary" role="progressbar" 
+                                         th:with="total=${schedule.totalSlots != null && schedule.totalSlots > 0 ? schedule.totalSlots : 20},
+                                                  available=${schedule.availableSlots},
+                                                  percent=${(available * 1.0 / total) * 100}"
+                                         th:style="'width: ' + ${percent} + '%;'"
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <!-- Logic for User Buttons -->
+                                <div sec:authorize="hasRole('ROLE_USER')">
+                                    <button class="btn btn-outline-secondary text-secondary border-0 w-100" disabled
+                                            style="opacity: 0.6;">
+                                        <i class="bi bi-clock-history me-2"></i>ТРЕНИРОВКА ЗАВЕРШЕНА
+                                    </button>
+                                </div>
+                                
+                                <!-- Logic for Admin Buttons (Edit/Delete) -->
+                                <div class="d-flex gap-2 mt-2" sec:authorize="hasRole('ROLE_ADMIN')">
+                                    <a th:href="@{/admin/schedule/{id}/subscribers(id=${schedule.id})}" class="btn btn-outline-info flex-grow-1" title="Посмотреть записавшихся">
+                                        <i class="bi bi-people"></i>
+                                    </a>
+                                    <a th:href="@{/admin/schedule/edit/{id}(id=${schedule.id})}" class="btn btn-outline-secondary flex-grow-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/admin/schedule/delete/{id}(id=${schedule.id})}" method="post" class="flex-grow-1" onsubmit="return confirm('Удалить?');">
+                                        <button type="submit" class="btn btn-outline-secondary w-100 text-danger" style="border-color: rgba(239, 68, 68, 0.3);">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Logic for Trainer to see subscribers -->
+                                <div class="d-grid mt-2" sec:authorize="hasRole('ROLE_TRAINER')">
+                                    <a th:if="${currentUser.id == schedule.trainer.id}" 
+                                       th:href="@{/trainer/schedules/{id}/subscribers(id=${schedule.id})}" 
+                                       class="btn btn-outline-info w-100 border-0">
+                                        <i class="bi bi-people me-2"></i>СПИСОК УЧАСТНИКОВ
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- Empty State -->
+    <div th:if="${activeSchedules.isEmpty() and pastSchedules.isEmpty()}" class="col-12 text-center py-5">
+        <h4 class="text-secondary fw-normal">На выбранную дату тренировок не найдено</h4>
+        <a th:href="@{/schedule}" class="btn btn-outline-primary mt-3">Показать все тренировки</a>
     </div>
 </div>
 

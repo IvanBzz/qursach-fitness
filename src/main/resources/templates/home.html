@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<div th:insert="~{fragments/navbar :: navbar}"></div>
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
 
 <!-- Hero Section -->
 <div class="hero-section text-center">
@@ -31,9 +31,9 @@
                     <br>
                     <span class="text-accent small" th:text="${#temporals.format(nextWorkout.schedule.startTime, 'dd MMMM, HH:mm')}">12.12 18:00</span>
                 </div>
-            </div>
         </div>
-        
+    </div>
+
         <div th:unless="${userName}">
             <a th:href="@{/registration}" class="btn btn-primary btn-lg px-5 me-3">НАЧАТЬ СЕЙЧАС</a>
             <a th:href="@{/login}" class="btn btn-outline-secondary btn-lg px-5">ВОЙТИ</a>
@@ -41,8 +41,8 @@
         <div th:if="${userName} and ${nextWorkout == null}">
              <a th:href="@{/schedule}" class="btn btn-primary btn-lg px-5">ЗАПИСАТЬСЯ</a>
         </div>
+        </div>
     </div>
-</div>
 
 <div class="container mb-5">
     <div class="row g-5">
@@ -64,9 +64,9 @@
                     </div>
                     <h4 class="card-title fw-bold mb-3 text-white" th:text="${news.title}">Заголовок</h4>
                     <p class="card-text text-secondary mb-0" th:text="${news.content}">Текст новости...</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
         <!-- Sidebar -->
         <div class="col-lg-4">

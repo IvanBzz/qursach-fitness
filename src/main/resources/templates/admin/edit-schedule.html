@@ -17,37 +17,37 @@
                 <div class="card-body">
                     <h4 class="fw-bold mb-4 text-center text-uppercase text-white">Редактирование слота</h4>
 
-                    <!-- Error Message -->
+    <!-- Error Message -->
                     <div th:if="${errorMessage}" class="alert alert-danger py-2 small border-0 mb-4" role="alert">
-                        <span th:text="${errorMessage}"></span>
-                    </div>
+        <span th:text="${errorMessage}"></span>
+    </div>
 
-                    <form th:action="@{/admin/schedule/edit/{id}(id=${scheduleDto.id})}" th:object="${scheduleDto}" method="post">
-                        <input type="hidden" th:field="*{id}" />
+    <form th:action="@{/admin/schedule/edit/{id}(id=${scheduleDto.id})}" th:object="${scheduleDto}" method="post">
+        <input type="hidden" th:field="*{id}" />
 
-                        <div class="mb-3">
+        <div class="mb-3">
                             <label for="workoutTypeId" class="form-label small text-secondary fw-bold text-uppercase">Тип тренировки</label>
-                            <select id="workoutTypeId" class="form-select" th:field="*{workoutTypeId}" required>
+            <select id="workoutTypeId" class="form-select" th:field="*{workoutTypeId}" required>
                                 <option value="" class="text-dark">-- Выберите --</option>
-                                <option th:each="type : ${allWorkoutTypes}"
-                                        th:value="${type.id}"
-                                        th:text="${type.title}"
-                                        th:selected="${type.id == scheduleDto.workoutTypeId}">Йога</option>
-                            </select>
+                <option th:each="type : ${allWorkoutTypes}"
+                        th:value="${type.id}"
+                        th:text="${type.title}"
+                        th:selected="${type.id == scheduleDto.workoutTypeId}">Йога</option>
+            </select>
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('workoutTypeId')}" th:errors="*{workoutTypeId}"></div>
-                        </div>
+        </div>
 
-                        <div class="mb-3">
+        <div class="mb-3">
                             <label for="trainerId" class="form-label small text-secondary fw-bold text-uppercase">Тренер</label>
-                            <select id="trainerId" class="form-select" th:field="*{trainerId}" required>
+            <select id="trainerId" class="form-select" th:field="*{trainerId}" required>
                                 <option value="" class="text-dark">-- Выберите --</option>
-                                <option th:each="trainer : ${allTrainers}"
-                                        th:value="${trainer.id}"
-                                        th:text="${trainer.fullName}"
-                                        th:selected="${trainer.id == scheduleDto.trainerId}">Иван Иванов</option>
-                            </select>
+                <option th:each="trainer : ${allTrainers}"
+                        th:value="${trainer.id}"
+                        th:text="${trainer.fullName}"
+                        th:selected="${trainer.id == scheduleDto.trainerId}">Иван Иванов</option>
+            </select>
                             <div class="text-danger small mt-1" th:if="${#fields.hasErrors('trainerId')}" th:errors="*{trainerId}"></div>
-                        </div>
+        </div>
 
                         <div class="row mb-4">
                             <div class="col-7">
@@ -60,7 +60,7 @@
                                 <input type="number" id="availableSlots" class="form-control" th:field="*{availableSlots}" min="0" required style="font-size: 1.1rem; padding: 10px;">
                                 <div class="text-danger small mt-1" th:if="${#fields.hasErrors('availableSlots')}" th:errors="*{availableSlots}"></div>
                             </div>
-                        </div>
+        </div>
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary text-uppercase fw-bold py-3">Сохранить</button>
